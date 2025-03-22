@@ -26,10 +26,6 @@ interface Word {
   kanji: string;
   categorie1: string;
   categorie2: string;
-  affichages: number;
-  bonnes_reponses: number;
-  mauvaises_reponses: number;
-  niveau_leitner: number;
   phrases_exemples: PhraseExemple[];
 }
 
@@ -63,10 +59,6 @@ async function main() {
           kanji: word.kanji !== '-' ? word.kanji : null, // Gérer les valeurs manquantes
           categorie1: word.categorie1,
           categorie2: word.categorie2,
-          affichages: word.affichages,
-          bonnesReponses: word.bonnes_reponses,
-          mauvaisesReponses: word.mauvaises_reponses,
-          niveauLeitner: word.niveau_leitner,
           phrasesExemples: {
             create: word.phrases_exemples.map((phrase: PhraseExemple) => ({
               kanji: phrase.kanji !== '-' ? phrase.kanji : null, // Gérer les valeurs manquantes

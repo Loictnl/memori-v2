@@ -9,10 +9,6 @@ const dataPath = path.join(process.cwd(), 'public/data/data.json');
 interface Word {
   id: number;
   francais: string;
-  niveau_leitner: number;
-  affichages: number;
-  bonnes_reponses: number;
-  mauvaises_reponses: number;
 }
 
 // API pour gérer la mise à jour des mots

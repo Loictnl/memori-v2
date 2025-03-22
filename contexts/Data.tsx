@@ -44,29 +44,9 @@ export const useDataState = () => {
 
         if (filteredWords.length === 0) return null;
 
-        // Implémenter le système Leitner: pondérer les mots selon leur niveau
-        // Plus le niveau est bas, plus le mot a de chances d'apparaître
-        
-        // Créer un tableau pondéré où les mots apparaissent selon leur niveau Leitner inversé
-        const weightedWords: Word[] = [];
-        
-        filteredWords.forEach(word => {
-            // Calculer le poids (inversement proportionnel au niveau)
-            // Max niveau 5 pour éviter des disparités trop grandes
-            const effectiveLevel = Math.min(word.niveauLeitner, 5);
-            
-            // Facteur de pondération: les mots de niveau 1 apparaissent 5 fois plus
-            // que les mots de niveau 5
-            const weight = 6 - effectiveLevel; // Niveau 1 = poids 5, Niveau 5 = poids 1
-            
-            // Ajouter le mot au tableau weightedWords selon son poids
-            for (let i = 0; i < weight; i++) {
-                weightedWords.push(word);
-            }
-        });
-        
-        // Sélectionner un mot aléatoire du tableau pondéré
-        const randomWord = weightedWords[Math.floor(Math.random() * weightedWords.length)];
+        // Sélection simple d'un mot aléatoire
+        const randomIndex = Math.floor(Math.random() * filteredWords.length);
+        const randomWord = filteredWords[randomIndex];
         setActiveWord(randomWord);
         
         // Sélectionner une langue aléatoire (filtré si nécessaire)
@@ -83,23 +63,7 @@ export const useDataState = () => {
         );
     }
 
-    function handleGoodAnswer() {
-        if (!activeWord) return;
-        axios.patch("/api/words", {
-            id: activeWord.id,
-            bonnesReponses: activeWord.bonnesReponses + 1,
-            niveauLeitner: activeWord.niveauLeitner + 1,
-        });
-        generateRandomWord();
-    }
-
-    function handleBadAnswer() {
-        if (!activeWord) return;
-        axios.patch("/api/words", {
-            id: activeWord.id,
-            mauvaisesReponses: activeWord.mauvaisesReponses + 1,
-            niveauLeitner: 1, // Reset to level 1 on incorrect answer
-        });
+    function handleNextWord() {
         generateRandomWord();
     }
 
@@ -134,8 +98,7 @@ export const useDataState = () => {
         setActiveWord,
         generateRandomWord,
         activeLanguage,
-        handleGoodAnswer,
-        handleBadAnswer,
+        handleNextWord,
         filters,
         setFilters,
         loading,

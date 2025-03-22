@@ -25,10 +25,7 @@ CREATE TABLE "Word" (
     "kanji" TEXT,
     "categorie1" TEXT NOT NULL,
     "categorie2" TEXT NOT NULL,
-    "affichages" INTEGER NOT NULL DEFAULT 0,
-    "bonnesReponses" INTEGER NOT NULL DEFAULT 0,
-    "mauvaisesReponses" INTEGER NOT NULL DEFAULT 0,
-    "niveauLeitner" INTEGER NOT NULL DEFAULT 1,
+    
 
     CONSTRAINT "Word_pkey" PRIMARY KEY ("id")
 );

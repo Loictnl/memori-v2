@@ -10,13 +10,3 @@ export async function GET() {
         })
     );
 }
-
-export async function PATCH(request: Request) {
-    const data: Word = await request.json();
-    return Response.json(
-        await prisma.word.update({
-            where: { id: data.id },
-            data,
-        })
-    );
-}
