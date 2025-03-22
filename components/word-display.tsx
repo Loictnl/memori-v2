@@ -12,7 +12,19 @@ export function WordDisplay() {
 	
 	// Formatage de la date de prochaine révision
 	const nextReviewText = activeWord?.nextReviewDate 
-		? formatDistanceToNow(new Date(activeWord.nextReviewDate), { addSuffix: true, locale: fr })
+		? (() => {
+			try {
+				// S'assurer que la date est valide
+				const dateValue = new Date(activeWord.nextReviewDate);
+				if (isNaN(dateValue.getTime())) {
+					return "Date invalide";
+				}
+				return formatDistanceToNow(dateValue, { addSuffix: true, locale: fr });
+			} catch (error) {
+				console.error("Erreur de formatage de date:", error);
+				return "Date non disponible";
+			}
+		})()
 		: "Pas encore évalué";
 	
 	return (
@@ -28,7 +40,7 @@ export function WordDisplay() {
 						{activeWord?.[activeLanguage]}
 					</h1>
 					{
-						randomPhrase && (
+						randomPhrase && randomPhrase[activeLanguage] && (
 							<ExemplePhrase 
 								originalPhrase={randomPhrase[activeLanguage]} 
 								frenchTranslation={randomPhrase.francais}

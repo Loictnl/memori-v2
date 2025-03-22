@@ -12,18 +12,24 @@ function calculateSM2(
 ) {
   console.log('SM-2 calculation started with:', { quality, easeFactor, interval, repetitions });
   
-  // Limiter la qualité entre 1 et 4
-  quality = Math.max(1, Math.min(4, quality));
+  // Adapter la qualité aux valeurs 1, 3, 5
+  quality = Math.max(1, Math.min(5, quality));
   
   let newEaseFactor = easeFactor;
   let newInterval = interval;
   let newRepetitions = repetitions;
 
   // Mise à jour du facteur de facilité (EF)
-  newEaseFactor = Math.max(1.3, easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)));
+  if (quality === 5) {
+    // Pour "Facile", on augmente progressivement le facteur
+    newEaseFactor = Math.min(2.5, easeFactor + 0.15);
+  } else {
+    // Pour les autres réponses, on utilise la formule adaptée
+    newEaseFactor = Math.max(1.3, easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)));
+  }
 
-  if (quality < 2) {
-    // Si la réponse est "très difficile", on recommence
+  if (quality < 3) {
+    // Si la réponse est "difficile", on recommence
     newRepetitions = 0;
     newInterval = 1;
   } else {

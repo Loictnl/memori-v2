@@ -1,50 +1,52 @@
-import { useData } from "@/contexts/Data";
 import { Button } from "./ui/button";
-import { useCallback } from "react";
+import { ReactNode } from "react";
 
-export function ActionButtons() {
-	const { handleNextWord, activeWord, evaluateWord } = useData();
-	
-	// Fonction pour évaluer un mot et passer au suivant
-	const handleEvaluation = useCallback((quality: number) => {
-		if (activeWord) {
-			evaluateWord(activeWord.id, quality);
-		}
-		handleNextWord();
-	}, [activeWord, evaluateWord, handleNextWord]);
+type ActionButtonProps = {
+	label: string;
+	colorClass?: string;
+	onClick: () => void;
+	variant?: "default" | "outline"; 
+};
 
+type ActionButtonsProps = {
+	primaryButtons: ActionButtonProps[];
+	secondaryButtons: ActionButtonProps[];
+	extraButton?: ActionButtonProps;
+};
+
+export function ActionButtons({ primaryButtons, secondaryButtons, extraButton }: ActionButtonsProps) {
 	return (
 		<div className="flex flex-col gap-2 w-full">
 			<div className="flex gap-2 w-full">
-				<Button
-					className="flex-1 bg-red-500 hover:bg-red-600"
-					onClick={() => handleEvaluation(1)}>
-					Très difficile
-				</Button>
-				<Button
-					className="flex-1 bg-orange-500 hover:bg-orange-600"
-					onClick={() => handleEvaluation(2)}>
-					Difficile
-				</Button>
+				{primaryButtons.map((button, index) => (
+					<Button
+						key={index}
+						className={`flex-1 ${button.colorClass || ""}`}
+						variant={button.variant || "default"}
+						onClick={button.onClick}>
+						{button.label}
+					</Button>
+				))}
 			</div>
 			<div className="flex gap-2 w-full">
-				<Button
-					className="flex-1 bg-green-500 hover:bg-green-600"
-					onClick={() => handleEvaluation(3)}>
-					Facile
-				</Button>
-				<Button
-					className="flex-1 bg-emerald-500 hover:bg-emerald-600"
-					onClick={() => handleEvaluation(4)}>
-					Très facile
-				</Button>
+				{secondaryButtons.map((button, index) => (
+					<Button
+						key={index}
+						className={`flex-1 ${button.colorClass || ""}`}
+						variant={button.variant || "default"}
+						onClick={button.onClick}>
+						{button.label}
+					</Button>
+				))}
 			</div>
-			<Button
-				className="w-full mt-2"
-				variant="outline"
-				onClick={handleNextWord}>
-				Passer
-			</Button>
+			{extraButton && (
+				<Button
+					className="w-full mt-2"
+					variant={extraButton.variant || "outline"}
+					onClick={extraButton.onClick}>
+					{extraButton.label}
+				</Button>
+			)}
 		</div>
 	);
 }
