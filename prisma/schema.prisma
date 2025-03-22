@@ -8,10 +8,8 @@ datasource db {
 generator client {
   provider = "prisma-client-js"
 }
+
 // Dans ton fichier schema.prisma
-
-
-
 
 model Heure {
   id     Int    @id @default(autoincrement())
@@ -26,22 +24,28 @@ model Minute {
 }
 
 model Word {
-  id                Int             @id @default(autoincrement())
-  francais          String
-  hiragana          String
-  romaji            String
-  kanji             String?
-  categorie1        String          // Par exemple, Verbe, Nom, etc.
-  categorie2        String          // Par exemple, Action, Nature, etc.
-  phrasesExemples   PhraseExemple[] // Relation avec les phrases d'exemple
+  id              Int             @id @default(autoincrement())
+  francais        String
+  hiragana        String
+  romaji          String
+  kanji           String?
+  categorie1      String // Par exemple, Verbe, Nom, etc.
+  categorie2      String // Par exemple, Action, Nature, etc.
+  // Champs SM-2
+  easeFactor      Float           @default(2.5)
+  interval        Int             @default(1)
+  repetitions     Int             @default(0)
+  nextReviewDate  DateTime?
+  lastReviewDate  DateTime?
+  phrasesExemples PhraseExemple[] // Relation avec les phrases d'exemple
 }
 
 model PhraseExemple {
-  id       Int    @id @default(autoincrement())
+  id       Int     @id @default(autoincrement())
   kanji    String?
   hiragana String
   romaji   String
   francais String
-  wordId   Int    // Clé étrangère vers le modèle Word
-  word     Word   @relation(fields: [wordId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  wordId   Int // Clé étrangère vers le modèle Word
+  word     Word    @relation(fields: [wordId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 }

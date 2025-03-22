@@ -24,11 +24,91 @@ export const useDataState = () => {
         Record<"lang" | "type" | "theme", string[]>
     >({ lang: [], type: [], theme: [] });
 
+    // Fonction pour évaluer un mot selon l'algorithme SM-2
+    async function evaluateWord(wordId: number, quality: number) {
+        try {
+            const response = await axios.post('/api/evaluateWord', { wordId, quality });
+            
+            if (response.status === 200) {
+                // Mettre à jour les mots en local
+                setWords(prevWords => 
+                    prevWords.map(word => {
+                        if (word.id === wordId) {
+                            // Calcul simplifié du nouvel état SM-2
+                            let newEaseFactor = word.easeFactor || 2.5;
+                            let newInterval = word.interval || 1;
+                            let newRepetitions = word.repetitions || 0;
+                            
+                            // Ajuster le facteur de facilité
+                            newEaseFactor = Math.max(1.3, newEaseFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)));
+                            
+                            // Ajuster l'intervalle et les répétitions
+                            if (quality < 2) {
+                                // Réinitialiser pour les réponses "très difficile"
+                                newRepetitions = 0;
+                                newInterval = 1;
+                            } else {
+                                newRepetitions += 1;
+                                
+                                if (newRepetitions === 1) {
+                                    newInterval = 1;
+                                } else if (newRepetitions === 2) {
+                                    newInterval = 6;
+                                } else {
+                                    newInterval = Math.round(newInterval * newEaseFactor);
+                                }
+                            }
+                            
+                            const now = new Date();
+                            const nextReviewDate = new Date(now);
+                            nextReviewDate.setDate(now.getDate() + newInterval);
+                            
+                            return {
+                                ...word,
+                                easeFactor: newEaseFactor,
+                                interval: newInterval,
+                                repetitions: newRepetitions,
+                                lastReviewDate: now,
+                                nextReviewDate: nextReviewDate
+                            };
+                        }
+                        return word;
+                    })
+                );
+            }
+        } catch (error) {
+            console.error('Erreur lors de l\'évaluation du mot:', error);
+        }
+    }
+
+    // Vérifier si un mot doit être dégradé (non vu depuis 30+ jours)
+    function checkWordDegradation(word: Word): Word {
+        if (!word.lastReviewDate) return word;
+        
+        const lastReview = new Date(word.lastReviewDate);
+        const now = new Date();
+        const daysDiff = Math.floor((now.getTime() - lastReview.getTime()) / (1000 * 60 * 60 * 24));
+        
+        // Si le mot n'a pas été vu depuis 30 jours
+        if (daysDiff >= 30) {
+            return {
+                ...word,
+                // Réduire le facteur de facilité de 0.2
+                easeFactor: Math.max(1.3, word.easeFactor - 0.2),
+                // Diviser l'intervalle par 2, minimum 1
+                interval: Math.max(1, Math.floor(word.interval / 2)),
+                // Garder le même nombre de répétitions pour conserver l'historique
+            };
+        }
+        
+        return word;
+    }
+
     function generateRandomWord() {
         if (words.length === 0) return null;
         
         // Filtrer les mots selon les filtres sélectionnés
-        const filteredWords = words.filter((word) => {
+        let filteredWords = words.filter((word) => {
             if (
                 filters.type.length > 0 &&
                 !filters.type.includes(word.categorie1)
@@ -44,9 +124,27 @@ export const useDataState = () => {
 
         if (filteredWords.length === 0) return null;
 
-        // Sélection simple d'un mot aléatoire
-        const randomIndex = Math.floor(Math.random() * filteredWords.length);
-        const randomWord = filteredWords[randomIndex];
+        // Vérifier et appliquer la dégradation aux mots non vus depuis 30+ jours
+        filteredWords = filteredWords.map(checkWordDegradation);
+        
+        // Prioriser les mots à réviser (dont la date de prochaine révision est passée)
+        const now = new Date();
+        const wordsToReview = filteredWords.filter(word => 
+            word.nextReviewDate && new Date(word.nextReviewDate) <= now
+        );
+        
+        let randomWord;
+        
+        // S'il y a des mots à réviser, les prioriser
+        if (wordsToReview.length > 0) {
+            const randomIndex = Math.floor(Math.random() * wordsToReview.length);
+            randomWord = wordsToReview[randomIndex];
+        } else {
+            // Sinon, sélectionner un mot aléatoire parmi tous les mots filtrés
+            const randomIndex = Math.floor(Math.random() * filteredWords.length);
+            randomWord = filteredWords[randomIndex];
+        }
+        
         setActiveWord(randomWord);
         
         // Sélectionner une langue aléatoire (filtré si nécessaire)
@@ -99,6 +197,7 @@ export const useDataState = () => {
         generateRandomWord,
         activeLanguage,
         handleNextWord,
+        evaluateWord,
         filters,
         setFilters,
         loading,
